@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vault 180</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap">
+<style id="css">
+:root{
+  --bg:#040906;
+  --screen:#071309;
+  --panel:#0a1a0e;
+  --ink:#3dff7c;
+  --mid:#25c95d;
+  --dim:#128a3e;
+  --dimmer:#0a5426;
+  --line:#128a3e;
+  --inv:#03120a;
+  --amber:#ffc257;
+  --font-d:"VT323","Share Tech Mono",ui-monospace,monospace;
+  --font-m:"Share Tech Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-m);
+  font-size:15px;
+  line-height:1.45;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+body::before{ /* phosphor vignette */
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:3;
+  background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55) 100%);
+}
+body::after{ /* scanlines */
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:4;
+  background:repeating-linear-gradient(to bottom, rgba(0,0,0,.25) 0 1px, transparent 1px 3px);
+  mix-blend-mode:multiply;
+}
+.crt{max-width:1160px;margin:0 auto;padding:14px 14px 90px;position:relative;z-index:1;
+  text-shadow:0 0 7px rgba(61,255,124,.38);
+  animation:flick 7s infinite steps(1);
+}
+@keyframes flick{0%,100%{opacity:1}31%{opacity:.985}32%{opacity:1}67%{opacity:.99}68%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.crt{animation:none}}
+button{font:inherit;color:inherit;background:none;border:none;text-transform:inherit;letter-spacing:inherit;cursor:pointer;text-shadow:inherit;padding:0}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* header */
+.hdr{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:2px solid var(--line);padding:6px 2px 7px;flex-wrap:wrap}
+.hdr .t{font-family:var(--font-d);font-size:30px;color:var(--ink)}
+.hdr .t small{font-size:18px;color:var(--mid)}
+.hdr .sys{font-size:12.5px;color:var(--dim)}
+.hdr .sync{font-size:12.5px;color:var(--mid);border:1px solid var(--dim);padding:2px 8px}
+.hdr .sync.warn{color:var(--amber);border-color:var(--amber)}
+
+/* tabs */
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:12px 0 4px;border-bottom:2px solid var(--line);padding-bottom:6px}
+.tab{padding:4px 12px;font-family:var(--font-d);font-size:21px;color:var(--dim)}
+.tab:hover{color:var(--mid)}
+.tab.on{background:var(--ink);color:var(--inv);text-shadow:none}
+.sub{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:7px 2px;color:var(--dim);font-size:12.5px}
+.sub .chip{border:1px solid var(--dim);padding:2px 9px;color:var(--mid)}
+.sub .chip.on{background:var(--mid);color:var(--inv);text-shadow:none}
+
+/* main grid: list left, detail right — never overlapping */
+.main{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-top:10px;align-items:start}
+@media (max-width:780px){.main{grid-template-columns:1fr}}
+
+.list{border:1px solid var(--dimmer);background:var(--screen);padding:6px}
+.cathead{color:var(--dim);font-size:12px;padding:8px 8px 2px;letter-spacing:.14em}
+.row{display:grid;grid-template-columns:44px 1fr auto;gap:8px;width:100%;text-align:left;padding:5px 8px;align-items:baseline;color:var(--mid)}
+.row .bx{font-family:var(--font-m);color:var(--ink)}
+.row .nm{white-space:normal}
+.row .nm .tag{font-size:11px;color:var(--dim);border:1px solid var(--dimmer);padding:0 5px;margin-left:7px}
+.row .nm .tag.safe{color:var(--amber);border-color:var(--amber)}
+.row .est{font-family:var(--font-m);color:var(--dim);font-variant-numeric:tabular-nums}
+.row:hover{background:rgba(61,255,124,.08)}
+.row.sel{background:var(--ink);color:var(--inv);text-shadow:none}
+.row.sel .bx,.row.sel .est,.row.sel .nm .tag{color:var(--inv);border-color:var(--inv)}
+.row.done{color:var(--dimmer)}
+.row.done .nm{text-decoration:line-through;text-decoration-thickness:1px}
+.row.done .bx{color:var(--dim)}
+.row.opt .nm{font-style:normal}
+.row.opt{opacity:.75}
+
+/* detail */
+.det{border:1px solid var(--dimmer);background:var(--panel);padding:14px 16px;position:sticky;top:12px}
+@media (max-width:780px){.det{position:static}}
+.det h2{font-family:var(--font-d);font-size:27px;margin:0 0 8px;color:var(--ink);line-height:1.1}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;font-size:13.5px;margin:10px 0}
+.kv dt{color:var(--dim)}
+.kv dd{margin:0;color:var(--mid);font-variant-numeric:tabular-nums}
+.det .note{color:var(--mid);font-size:13px;border-top:1px dashed var(--dimmer);padding-top:9px;margin-top:9px}
+.det .note.safe{color:var(--amber)}
+.bigbtn{display:block;width:100%;border:2px solid var(--ink);padding:9px 10px;margin-top:14px;font-family:var(--font-d);font-size:22px;text-align:center;color:var(--ink)}
+.bigbtn:hover{background:var(--ink);color:var(--inv);text-shadow:none}
+.bigbtn.undo{border-color:var(--dim);color:var(--dim)}
+
+/* status tab */
+.leaders{border:1px solid var(--dimmer);background:var(--screen);padding:14px 16px}
+.leaders h2{font-family:var(--font-d);font-size:24px;margin:0 0 10px;color:var(--mid)}
+.lrow{display:flex;align-items:baseline;gap:6px;padding:3px 0;width:100%;text-align:left;color:var(--mid)}
+.lrow:hover .ln{color:var(--ink)}
+.lrow .dots{flex:1;border-bottom:2px dotted var(--dimmer);transform:translateY(-4px)}
+.lrow .pv{font-variant-numeric:tabular-nums;color:var(--ink)}
+.nextup{margin-top:16px}
+.nextup .nrow{display:flex;gap:10px;padding:3px 0;color:var(--mid);width:100%;text-align:left;align-items:baseline}
+.nextup .nrow:hover{color:var(--ink)}
+.nextup .nrow .tier{color:var(--dim);font-size:12px;border:1px solid var(--dimmer);padding:0 5px;white-space:nowrap}
+.nextup .nrow .pr{margin-left:auto;color:var(--dim);font-variant-numeric:tabular-nums}
+
+/* footer bar */
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--inv);border-top:2px solid var(--line);padding:8px 14px;
+ display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--mid);text-shadow:0 0 7px rgba(61,255,124,.3)}
+.foot .bar{flex:1;min-width:140px;height:13px;border:1px solid var(--dim);position:relative}
+.foot .bar i{position:absolute;inset:1px auto 1px 1px;background:var(--ink);display:block}
+.foot b{color:var(--ink);font-weight:normal;font-variant-numeric:tabular-nums}
+.hint{color:var(--dimmer);font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script id="state" type="application/json">{"v":1,"checked":{"f1":true,"f2":true}}</script>
+<script id="app">
+(function(){
+"use strict";
+/* ---------- DATA: the lean-build supply ledger, 2 adults / 180 days ---------- */
+/* t: tier (T0 finish food+water, T1 cold layer, T2 med+hygiene, T3 heat, T4 comms, T5 gear, T6 fuel+pit, OPT optional add-back). d:1 = already bought. s:1 = safety-critical, never cut. */
+var ITEMS=[
+{i:"f1",c:"FOOD",n:"AUGASON FARMS 45-DAY KIT",q:"6 KITS",e:1280,t:"DONE",d:1,note:"54,810 CAL/KIT · 204 POUCHES · 25-YR SHELF. DAILY BACKBONE: ONE POUCH SHARED (~800 CAL EACH) + SUNDAY DOUBLE."},
+{i:"f2",c:"FOOD",n:"MTN HOUSE EXPEDITION BUCKET",q:"3 BUCKETS",e:398,t:"DONE",d:1,note:"8,200 CAL/BUCKET · 45 POUCHES · 30-YR TASTE GUARANTEE. GOOD-DINNER BOOST EVERY 4TH DAY, POUCH SHARED."},
+{i:"f3",c:"FOOD",n:"WHITE RICE, MYLAR-REPACKED",q:"3× 50-LB SACKS",e:130,t:"T0",note:"247,000 CAL. THE CHEAPEST CALORIES IN THE PLAN. COOK IN THE WONDER OVEN TO SAVE FUEL."},
+{i:"f4",c:"FOOD",n:"ROLLED OATS",q:"1× 25-LB SACK",e:35,t:"T0",note:"44,000 CAL. BREAKFAST LINE WITH SUGAR/HONEY."},
+{i:"f5",c:"FOOD",n:"COOKING OIL",q:"4× 1-GAL",e:60,t:"T0",note:"123,000 CAL — DENSEST BUY ON THE BOARD. ROTATE YEARLY."},
+{i:"f6",c:"FOOD",n:"PINTO BEANS / LENTILS",q:"2× 20-LB SACKS",e:65,t:"T0",note:"62,000 CAL + PROTEIN. WONDER-OVEN FRIENDLY."},
+{i:"f7",c:"FOOD",n:"CANNED TUNA 5-OZ",q:"100 CANS",e:120,t:"T0",note:"PART OF THE DAILY MEAT CAN — THE PROTEIN LINE IS NOT OPTIONAL."},
+{i:"f8",c:"FOOD",n:"CANNED CHICKEN 10-OZ",q:"50 CANS",e:190,t:"T0",note:"PROTEIN LINE. ONE MEAT CAN PER DAY, SPLIT BETWEEN TWO."},
+{i:"f9",c:"FOOD",n:"SPAM 12-OZ",q:"40 CANS",e:160,t:"T0",note:"43,000 CAL — THE CALORIE-DENSE MEAT. WINTER FAT IS FUEL."},
+{i:"f10",c:"FOOD",n:"SPAGHETTIOS / RAVIOLI",q:"60 CANS",e:105,t:"T0",note:"PRE-COOKED — EATS COLD FROM THE CAN. THIS IS THE NO-FLAME TIER."},
+{i:"f11",c:"FOOD",n:"CHUNKY READY-TO-SERVE SOUPS",q:"40 CANS",e:115,t:"T0",note:"EATS COLD IN A PINCH. WET-CAN ROTATION, HALF-CAN EACH ALTERNATE DAYS."},
+{i:"f12",c:"FOOD",n:"CAMPBELL'S CHICKEN NOODLE",q:"40 CANS",e:60,t:"T0",note:"~160 CAL/CAN — BROTH AND MORALE ONLY, NEVER A CALORIE PLAN. 1–2/WEEK."},
+{i:"f13",c:"FOOD",n:"PEANUT BUTTER 40-OZ",q:"6 JARS",e:45,t:"T0",note:"38,000 CAL. SPOON FUEL."},
+{i:"f14",c:"FOOD",n:"SALT · HONEY · SUGAR · SODA",q:"25/15/10/13.5 LB",e:150,t:"T0",note:"PRESERVING, MORALE, BAKING, CLEANING, MEDICAL. MULTI-USE STACK."},
+{i:"f15",c:"FOOD",n:"VITAMINS · COFFEE · SPICES · BOUILLON",q:"6-MO",e:130,t:"T0",note:"MICRONUTRIENT INSURANCE + THE FLAVOR THAT KEEPS RICE EATABLE ON DAY 120."},
+{i:"f16",c:"FOOD",n:"MYLAR + O2 ABSORBERS + BUCKETS",q:"6× 6-GAL + LIDS",e:110,t:"T0",note:"REPACK RICE/OATS/BEANS. LABEL CONTENTS + DATE + CALORIES."},
+{i:"f17",c:"FOOD",n:"FLAMELESS RATION HEATERS",q:"40",e:70,t:"OPT",o:1,note:"MAKES ANY POUCH OR DECANTED CAN HOT ON NO-FLAME DAYS."},
+{i:"w1",c:"WATER",n:"2.5-GAL TAP JUGS",q:"180 @ $4",e:720,t:"T0",note:"450 GAL. ONE JUG PER DAY = THE HOUSEHOLD RATION — THE COUNT IS THE DAYS REMAINING. SINGLE-LAYER ON SHELVES, DRIP TRAYS, DRINK THROUGH ON A 12–24 MO CYCLE."},
+{i:"w2",c:"WATER",n:"5-GAL RIGID JERRY CANS",q:"10",e:150,t:"T0",note:"THE HAULING LAYER — THIN RETAIL JUGS DON'T SURVIVE REFILL TRIPS."},
+{i:"w3",c:"WATER",n:"WATERBOB TUB LINER",q:"1",e:40,t:"T0",note:"100 GAL AT EVENT ONSET — CHEAPEST WATER IN THE PLAN. FILL IT THE FIRST HOUR."},
+{i:"w4",c:"WATER",n:"DIY GRAVITY FILTER + 2 CERAMIC CANDLES",q:"2 BUCKETS",e:80,t:"T0",note:"LEAN PICK — SAME FUNCTION AS THE $330 STAINLESS UNIT. RUNNING BY WEEK 2–3, NOT WHEN SHELVES EMPTY."},
+{i:"w5",c:"WATER",n:"SAWYER SQUEEZE",q:"2",e:80,t:"T0",s:1,note:"⚠ A WET HOLLOW-FIBER FILTER IS DESTROYED BY ONE FREEZE — NO VISIBLE DAMAGE. STORE WARM, CARRY INSIDE YOUR COAT."},
+{i:"w6",c:"WATER",n:"LIFESTRAW",q:"2",e:35,t:"T0",s:1,note:"⚠ SAME FREEZE RULE AS THE SAWYERS. MOBILE BACKUP."},
+{i:"w7",c:"WATER",n:"AQUATABS",q:"2× 100-CT",e:30,t:"T0",note:"GRAB-AND-GO CHEMICAL LAYER."},
+{i:"w8",c:"WATER",n:"POOL SHOCK, PLAIN 68–73%",q:"2× 1-LB",e:25,t:"T0",s:1,note:"TREATS 10,000+ GAL. STOCK SOLUTION: 1 HEAPING TSP PER 2 GAL → 1:100. STORE SEALED, VENTED, AWAY FROM METALS AND ALL FUEL."},
+{i:"w9",c:"WATER",n:"RAIN BARRELS + DIVERTER",q:"2× 32-GAL",e:120,t:"OPT",o:1,note:"SPRING WORKHORSE — BUY IN MARCH. WINTER CATCHMENT IS SNOW."},
+{i:"m1",c:"MED",n:"CAT TOURNIQUETS (GENUINE)",q:"2",e:60,t:"T2",note:"REPUTABLE SELLER ONLY — COUNTERFEITS FAIL UNDER LOAD."},
+{i:"m2",c:"MED",n:"ISRAELI BANDAGES + HEMOSTATIC + CHEST SEALS",q:"4/2/2",e:85,t:"T2",note:"THE BLEEDING KIT. TAKE A STOP-THE-BLEED CLASS — IT'S FREE."},
+{i:"m3",c:"MED",n:"WOUND KIT",q:"FULL",e:80,t:"T2",note:"GAUZE, TAPE, ABD PADS, STERI-STRIPS, ACE ×4."},
+{i:"m4",c:"MED",n:"OTC PHARMACY BUNDLE",q:"6-MO",e:180,t:"T2",note:"PAIN/FEVER 500-CT, ANTIHISTAMINES, LOPERAMIDE, ORS ×20, ANTACID, HYDROCORTISONE, TRIPLE-ANTIBIOTIC."},
+{i:"m5",c:"MED",n:"ANTIFUNGAL CREAMS",q:"5",e:25,t:"T2",note:"PAIRS WITH THE BATHING PROTOCOL — FUNGUS IS THE 6-MONTH SKIN ENEMY."},
+{i:"m6",c:"MED",n:"DIAGNOSTICS: BP CUFF + PULSE OX + THERMOMETERS",q:"SET",e:85,t:"T2",note:"KNOW A REAL FEVER FROM A COLD ROOM."},
+{i:"m7",c:"MED",n:"SAM SPLINTS + SHEARS + IRRIGATION",q:"2 + SET",e:55,t:"T2",note:""},
+{i:"m8",c:"MED",n:"BURN KIT",q:"1",e:25,t:"T2",note:"STOVES + LANTERNS + COLD HANDS = BURNS HAPPEN."},
+{i:"m9",c:"MED",n:"NITRILE GLOVES + N95",q:"200 + 40",e:65,t:"T2",note:""},
+{i:"m10",c:"MED",n:"DENTAL KIT",q:"1",e:40,t:"T2",note:"TEMP FILLING, CLOVE OIL, WAX. A BROKEN TOOTH WITH NO DENTIST IS A MORALE BOMB."},
+{i:"m11",c:"MED",n:"PRINTED REFERENCES + DOSING CARDS",q:"SET",e:30,t:"T2",note:"WHERE THERE IS NO DOCTOR, PRINTED. PAPER DOESN'T NEED POWER."},
+{i:"m12",c:"MED",n:"EMERGENCY ANTIBIOTIC KIT",q:"1",e:260,t:"OPT",o:1,note:"PHYSICIAN-SOURCED, UTI COVERAGE INCLUDED. REMOVED PER DECISION — THE ONE LINE WORTH REVISITING SOMEDAY."},
+{i:"h1",c:"MED",n:"TOILET PAPER",q:"80 ROLLS",e:80,t:"T2",note:""},
+{i:"h2",c:"MED",n:"BATHING WIPES",q:"1,200",e:50,t:"T2",note:"ALTERNATE-DAY WIPE BATHS = ZERO WATER."},
+{i:"h3",c:"MED",n:"NO-RINSE SHAMPOO CAPS",q:"10",e:35,t:"T2",note:"HAIR BETWEEN REAL WASH DAYS."},
+{i:"h4",c:"MED",n:"MEDICATED BODY POWDER",q:"4",e:20,t:"T2",note:"DRY HARD, THEN POWDER — PREVENTS MORE DISEASE THAN THE WASH."},
+{i:"h5",c:"MED",n:"BAR SOAP ×20 + CASTILE 32-OZ",q:"SET",e:35,t:"T2",note:"DILUTE CASTILE 1:4 — LESS SOAP IS THE SECRET TO LESS RINSE."},
+{i:"h6",c:"MED",n:"DENTAL CONSUMABLES",q:"8 TUBES + FLOSS",e:35,t:"T2",note:""},
+{i:"h7",c:"MED",n:"FEMININE HYGIENE 6-MO + CUP BACKUP",q:"SET",e:70,t:"T2",note:"COTTON UNDERWEAR ROTATION — THE ONE PLACE COTTON WINS (UTI/FUNGAL PREVENTION)."},
+{i:"h8",c:"MED",n:"TOWEL + WASHCLOTH SETS + BATH TOTE",q:"2/PERSON + TOTE",e:65,t:"T2",note:"THE TOTE CATCHES BATH WATER → LAUNDRY → TOILET. EVERY GALLON WORKS TWICE."},
+{i:"h9",c:"MED",n:"TWIN-BUCKET TOILET + COIR + LINERS",q:"SET",e:95,t:"T2",note:"SEPARATE LIQUIDS/SOLIDS = FAR LESS SMELL."},
+{i:"h10",c:"MED",n:"LAUNDRY: BUCKET + PLUNGER + LINE",q:"SET",e:35,t:"T2",note:"SOCKS AND UNDERWEAR 2×/WEEK, NON-NEGOTIABLE."},
+{i:"h11",c:"MED",n:"CONTRACTOR BAGS 3-MIL",q:"100",e:60,t:"T2",note:""},
+{i:"h12",c:"MED",n:"SANITIZER + RAZORS + GROOMING",q:"SET",e:50,t:"T2",note:"SANITIZER FOR ROUTINE; REAL SOAP AFTER TOILET + BEFORE COOKING (NORO DOESN'T CARE ABOUT SANITIZER)."},
+{i:"s1",c:"WARM",n:"SLEEPING BAGS 0°F TO −20°F",q:"2",e:220,t:"T1",note:"THE HEATER SLEEPS OFF — THE BAGS DO NIGHTS. THIS IS WHAT MAKES THE 3-MONTH FUEL BANK SAFE."},
+{i:"s2",c:"WARM",n:"CLOSED-CELL FOAM PADS",q:"2",e:50,t:"T1",note:"INSULATION FROM THE SLAB. THE FLOOR STEALS MORE HEAT THAN THE AIR."},
+{i:"s3",c:"WARM",n:"WOOL BLANKETS",q:"4",e:120,t:"T1",note:""},
+{i:"c1",c:"WARM",n:"MERINO BASE LAYERS",q:"2 SETS EACH",e:280,t:"T1",note:"NO COTTON BASE LAYERS — COTTON HOLDS SWEAT AND LOSES ALL INSULATION WET. MERINO WORKS DAMP."},
+{i:"c2",c:"WARM",n:"POLY BASE BACKUP SETS",q:"2",e:50,t:"T1",note:""},
+{i:"c3",c:"WARM",n:"MERINO SOCKS",q:"12 PR",e:60,t:"T1",note:"DRY FEET ARE A MEDICAL ITEM."},
+{i:"c4",c:"WARM",n:"FLEECE MID LAYERS",q:"4",e:80,t:"T1",note:""},
+{i:"c5",c:"WARM",n:"INSULATED WINTER PARKAS — PROPER ONES",q:"2",e:320,t:"T1",note:"CAPITAL THAT NEVER EXPIRES AND SUBSTITUTES FOR PROPANE. WORKS EVERY ORDINARY WINTER TOO."},
+{i:"c6",c:"WARM",n:"BEANIES + INSULATED GLOVES + LINERS",q:"2 EACH",e:60,t:"T1",note:""},
+{i:"c7",c:"WARM",n:"HAND WARMERS",q:"40",e:30,t:"T1",note:""},
+{i:"g1",c:"GEAR",n:"GMRS RADIO PAIR + LICENSE",q:"2 + LIC",e:105,t:"T4",note:"LISTEN MUCH, TRANSMIT LITTLE, NOTHING ABOUT SUPPLIES ON AIR. $35 LICENSE, NO TEST."},
+{i:"g2",c:"GEAR",n:"CRANK NOAA / AM / FM / SW RADIO",q:"1",e:60,t:"T4",note:"THE EAR ON THE OUTSIDE WORLD — RECOVERY SIGNALS DRIVE THE TAPER RULE."},
+{i:"g3",c:"GEAR",n:"LITHIUM AA/AAA BULK + ENELOOPS",q:"LOT",e:120,t:"T4",note:"LITHIUM PRIMARIES HOLD 20 YEARS AND WORK AT −40°F."},
+{i:"g4",c:"GEAR",n:"HEADLAMPS ×4 + LANTERNS ×3",q:"7",e:170,t:"T4",note:"HANDS-FREE LIGHT IS SAFETY EQUIPMENT."},
+{i:"g5",c:"GEAR",n:"FARADAY CAN + BAGS",q:"1 SET",e:80,t:"T4",note:"SPARE RADIO PAIR, LIGHTS, JUMP PACK LIVE INSIDE."},
+{i:"g6",c:"GEAR",n:"SOLAR 100W + POWER BANKS",q:"1 + 2",e:330,t:"OPT",o:1,note:"CUT IN THE LEAN BUILD — LITHIUM PRIMARIES + CRANK RADIO CARRY IT."},
+{i:"g7",c:"GEAR",n:"MULTITOOL",q:"1",e:70,t:"T5",note:""},
+{i:"g8",c:"GEAR",n:"FIXED-BLADE KNIVES",q:"2",e:60,t:"T5",note:""},
+{i:"g9",c:"GEAR",n:"AXE + BOW SAW + PRY BAR + SLEDGE",q:"SET",e:150,t:"T5",note:""},
+{i:"g10",c:"GEAR",n:"TAPE + PARACORD + TARPS",q:"LOT",e:145,t:"T5",note:""},
+{i:"g11",c:"GEAR",n:"WORK GLOVES",q:"6 PR",e:40,t:"T5",note:""},
+{i:"g12",c:"GEAR",n:"FIRE: BICS ×20 + FERRO + STORM MATCHES",q:"SET",e:35,t:"T5",note:"A BIC IS THE BEST FIRE TOOL EVER MADE. TWENTY OF THEM IS ALSO BARTER."},
+{i:"g13",c:"GEAR",n:"CAST IRON + WONDER OVEN",q:"2 PC + 1",e:105,t:"T5",note:"BOIL 5 MIN, INSULATE 2 HRS — CUTS COOKING FUEL 50–70%."},
+{i:"g14",c:"GEAR",n:"MAPS + COMPASS + SEWING + OPENERS",q:"SET",e:85,t:"T5",note:"MARK WATER SOURCES AND THE PIT ON THE PAPER MAP."},
+{i:"g15",c:"GEAR",n:"HARDENING: PLYWOOD + 2×4 + SCREWS",q:"LOT",e:200,t:"T5",note:"STAIR DOOR + WINDOW PANELS. BLACKOUT = LIGHT DISCIPLINE IS FREE SECURITY."},
+{i:"g16",c:"GEAR",n:"DOOR BAR + SECURITY FILM + WELL LOCKS",q:"SET",e:150,t:"T5",note:"KEEP THE EGRESS WINDOW OPERABLE — FIRE EXIT BEATS FORTRESS."},
+{i:"g17",c:"GEAR",n:"PIR DRIVEWAY ALARMS + WEDGES + AIR HORNS",q:"SET",e:80,t:"T5",note:"TWO ADULTS CAN'T RUN WATCHES — BUY EARLY WARNING INSTEAD."},
+{i:"g18",c:"GEAR",n:"WATER ALARM + BACKUP SUMP PUMP",q:"SET",e:120,t:"T5",s:1,note:"⚠ THE SUMP PUMP DIES WITH THE GRID — SPRING MELT CAN FLOOD THE WHOLE STORE."},
+{i:"g19",c:"GEAR",n:"JUMP-STARTER PACK",q:"1",e:80,t:"T5",note:"NO GRID = NO BATTERY TENDER. PAIRS WITH THE MONTHLY MAINTENANCE RUN."},
+{i:"g20",c:"GEAR",n:"BIKE TUNE + TUBES + CARGO RACK",q:"SET",e:60,t:"T5",note:"OWNS THE 1–5 MILE BAND ON ZERO FUEL AND NEAR-ZERO NOISE."},
+{i:"g21",c:"GEAR",n:"SPARE 5-GAL BUCKETS + LIDS",q:"6",e:40,t:"T5",note:""},
+{i:"u1",c:"FUEL",n:"BIG BUDDY + PORTABLE BUDDY HEATERS",q:"2",e:240,t:"T3",note:"LOW-OXYGEN SHUTOFF MODELS. HEATER RUNS INTERMITTENT, NEVER WHILE SLEEPING."},
+{i:"u2",c:"FUEL",n:"HOSE + FUEL FILTER",q:"12-FT",e:50,t:"T3",note:"THROUGH THE WINDOW BOARD TO THE TANK OUTSIDE."},
+{i:"u3",c:"FUEL",n:"TWO-BURNER PROPANE STOVE",q:"1",e:100,t:"T3",note:""},
+{i:"u4",c:"FUEL",n:"FOAM BOARD — WARM ROOM BUILD",q:"R-10 KIT",e:200,t:"T3",note:"HEAT 170 SQ FT, NOT 800. SAVES 2× ITS COST IN PROPANE AND MAKES EVERY COLD DAY BETTER."},
+{i:"u5",c:"FUEL",n:"CO ×3 + SMOKE ×2 + EXTINGUISHERS ×3",q:"SET",e:250,t:"T3",s:1,note:"⚠ NEVER CUT. CO KILLS MORE PEOPLE IN OUTAGES THAN ANYTHING ELSE IN THIS PLAN. ONE CO ALARM LIVES IN THE WARM ROOM."},
+{i:"u6",c:"FUEL",n:"PROPANE 3-MONTH BANK",q:"12× 20-LB",e:540,t:"T3",note:"240 LB. BBQ TANKS ALONG A FENCE LINE READ ORDINARY — CABLE-LOCKED, UPRIGHT, SHADED, NEVER INDOORS, NEVER BURIED."},
+{i:"u7",c:"FUEL",n:"1-LB PROPANE BOTTLES",q:"24",e:40,t:"T3",note:"THE ONLY PROPANE ALLOWED INDOORS."},
+{i:"u8",c:"FUEL",n:"HDPE GAS CANS",q:"4× 5-GAL",e:100,t:"T6",note:"2–4 LIVE IN THE SLOPE PIT. VEHICLE TANKS (KEPT ≥¾) ARE THE PRIMARY STORE."},
+{i:"u9",c:"FUEL",n:"ETHANOL-FREE GASOLINE",q:"20–30 GAL",e:110,t:"T6",s:1,note:"⚠ ZERO GALLONS INDOORS, EVER — VAPOR POOLS AT THE BASEMENT FLOOR WHERE THE FLAME AND THE BEDS ARE. PIT + TANKS ONLY."},
+{i:"u10",c:"FUEL",n:"STABILIZER + SIPHON + FUNNEL",q:"SET",e:50,t:"T6",note:"DOUBLE-DOSE THE PIT CANS. POUR THROUGH THE CAR EVERY 6–12 MO."},
+{i:"u11",c:"FUEL",n:"SLOPE PIT BUILD",q:"MATERIALS",e:80,t:"T6",note:"GRAVEL BED, HARD LINER, VENTS HIGH + LOW — NEVER AIRTIGHT — 20+ FT OUT, NEVER UPHILL OF THE HOUSE. FULLY REVERSIBLE: SAVE THE SOD."},
+{i:"u12",c:"FUEL",n:"PIT COVER: COMPOST BIN / WOOD RACK",q:"1",e:50,t:"OPT",o:1,note:"HONEST-LOOKING COVER BESIDE THE PIT."},
+{i:"p1",c:"PLUS",n:"BODY ARMOR, IIIA SOFT",q:"2 SETS",e:600,t:"OPT",o:1,note:"DEFERRED IN THE LEAN BUILD. RE-ENTRY PRICE WHEN READY; CERAMIC III/III+ IS THE $1,300 UPGRADE."},
+{i:"p2",c:"PLUS",n:"PROPANE MONTHS 4–6 REFILL",q:"12× 20-LB",e:550,t:"OPT",o:1,note:"ONLY IF WINTER RUNS LONG — MARCH ONWARD THE WARM ROOM MOSTLY HOLDS ITSELF."},
+{i:"p3",c:"PLUS",n:"HEIRLOOM SEED VAULT + GARDEN TOOLS",q:"SET",e:90,t:"OPT",o:1,note:"SPRING BUY. THE OFF-RAMP STARTS IN THE DIRT."},
+{i:"p4",c:"PLUS",n:"CANNING STARTER",q:"SET",e:80,t:"OPT",o:1,note:"SPRING BUY — PAIRS WITH THE GARDEN."},
+{i:"p5",c:"PLUS",n:"BARTER SMALLS: LIGHTERS + BATTERIES + AQUATABS",q:"LOT",e:80,t:"OPT",o:1,note:"TRADES BETTER PER POUND THAN GASOLINE."},
+{i:"p6",c:"PLUS",n:"CASH RESERVE, SMALL BILLS",q:"$300–1,000",e:0,t:"OPT",o:1,note:"HELD, NOT SPENT. CARDS DIE WITH THE GRID."}
+];
+var CATS=["STATUS","FOOD","WATER","MED","WARM","GEAR","FUEL","PLUS"];
+var CATLABEL={FOOD:"FOOD — 6 MONTHS",WATER:"WATER — 500 GAL + STACK",MED:"MED + HYGIENE",WARM:"COLD LAYER",GEAR:"GEAR + COMMS + SECURITY",FUEL:"HEAT + FUEL",PLUS:"DEFERRED / OPTIONAL"};
+var TIERS={DONE:"BOUGHT",T0:"TIER 0 · FINISH FOOD+WATER",T1:"TIER 1 · COLD LAYER",T2:"TIER 2 · MED+HYGIENE",T3:"TIER 3 · HEAT",T4:"TIER 4 · COMMS",T5:"TIER 5 · GEAR",T6:"TIER 6 · FUEL+PIT",OPT:"OPTIONAL ADD-BACK"};
+var TORDER=["DONE","T0","T1","T2","T3","T4","T5","T6","OPT"];
+
+/* ---------- state ---------- */
+var stateEl=document.getElementById("state");
+var state={v:1,checked:{}};
+try{var p=JSON.parse(stateEl.textContent);if(p&&p.checked)state=p;}catch(e){}
+var art=null, artReady=false, tab="STATUS", sel=null, showOpt=true, saveT=null;
+
+function lsWrite(){try{localStorage.setItem("vault180",JSON.stringify(state));}catch(e){}}
+function lsMerge(){try{var s=localStorage.getItem("vault180");if(s){var o=JSON.parse(s);if(o&&o.checked){for(var k in o.checked){state.checked[k]=o.checked[k];}}}}catch(e){}}
+
+/* ---------- helpers ---------- */
+function fmt(n){return "$"+n.toLocaleString("en-US");}
+function leanItems(){return ITEMS.filter(function(x){return !x.o;});}
+function leanTotal(){return leanItems().reduce(function(a,x){return a+x.e;},0);}
+function secured(){return ITEMS.reduce(function(a,x){return a+(state.checked[x.i]?x.e:0);},0);}
+function countChecked(){return ITEMS.filter(function(x){return state.checked[x.i];}).length;}
+function catItems(c){return ITEMS.filter(function(x){return x.c===c&&(showOpt||!x.o);});}
+function catPct(c){var it=ITEMS.filter(function(x){return x.c===c&&!x.o;});var t=it.reduce(function(a,x){return a+x.e;},0);var s=it.reduce(function(a,x){return a+(state.checked[x.i]?x.e:0);},0);return t?Math.round(100*s/t):0;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+/* ---------- persistence ---------- */
+function buildDoc(){
+  var css=document.getElementById("css").textContent;
+  var app=document.getElementById("app").textContent;
+  var json=JSON.stringify(state).replace(/</g,"\\u003c");
+  return "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Vault 180</title>\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap\">\n<style id=\"css\">"+css+"</style>\n</head>\n<body>\n<div id=\"root\"></div>\n<script id=\"state\" type=\"application/json\">"+json+"<\/script>\n<script id=\"app\">"+app+"<\/script>\n</body>\n</html>";
+}
+function setSync(txt,warn){var el=document.getElementById("sync");if(el){el.textContent="HOLOTAPE: "+txt;el.className="sync"+(warn?" warn":"");}}
+function persist(){
+  lsWrite();
+  if(art){
+    setSync("WRITING…");
+    clearTimeout(saveT);
+    saveT=setTimeout(function(){
+      art.publish(buildDoc()).then(function(){setSync("SYNCED");})
+      .catch(function(e){ if(e&&(e.code==="conflict")){/* view reloads to winner */} else {setSync("LOCAL ONLY",true);} });
+    },1600);
+  } else {
+    setSync(artReady?"LOCAL ONLY":"LOCAL",!artReady?false:true);
+  }
+}
+
+/* ---------- render ---------- */
+function render(){
+  var root=document.getElementById("root");
+  var lt=leanTotal(), sec=secured();
+  var optSum=ITEMS.filter(function(x){return x.o;}).reduce(function(a,x){return a+x.e;},0);
+  var h='<div class="crt">';
+  h+='<header class="hdr"><span class="t">VAULT 180 <small>· SUPPLY LEDGER</small></span>'
+   +'<span class="sys">2 ADULTS · 180 DAYS · REV 2026-08-29</span>'
+   +'<span class="sync" id="sync">HOLOTAPE: …</span></header>';
+  h+='<nav class="tabs">'+CATS.map(function(c){return '<button class="tab'+(tab===c?" on":"")+'" data-tab="'+c+'">'+c+'</button>';}).join("")+'</nav>';
+  if(tab!=="STATUS"){
+    h+='<div class="sub"><span>'+esc(CATLABEL[tab]||"")+'</span>'
+     +'<button class="chip'+(showOpt?" on":"")+'" id="optchip">'+(showOpt?"OPTIONAL: SHOWN":"OPTIONAL: HIDDEN")+'</button>'
+     +'<span>⚠ = SAFETY-CRITICAL, NEVER CUT</span></div>';
+    h+='<div class="main"><div class="list" role="list">';
+    var its=catItems(tab);
+    h+=its.map(function(x){
+      var ck=!!state.checked[x.i];
+      return '<button class="row'+(ck?" done":"")+(sel===x.i?" sel":"")+(x.o?" opt":"")+'" data-id="'+x.i+'" role="listitem" aria-pressed="'+(sel===x.i)+'">'
+        +'<span class="bx" data-box="'+x.i+'" role="checkbox" aria-checked="'+ck+'" aria-label="mark '+esc(x.n)+'">'+(ck?"[X]":"[&nbsp;&nbsp;]")+'</span>'
+        +'<span class="nm">'+esc(x.n)
+        +(x.s?'<span class="tag safe">⚠</span>':"")
+        +(x.o?'<span class="tag">OPT</span>':"")
+        +'</span><span class="est">'+(x.e?fmt(x.e):"—")+'</span></button>';
+    }).join("");
+    h+='</div>';
+    var d=ITEMS.find(function(x){return x.i===sel&&x.c===tab;});
+    h+='<aside class="det">';
+    if(d){
+      var ck2=!!state.checked[d.i];
+      h+='<h2>'+esc(d.n)+'</h2><dl class="kv">'
+        +'<dt>QTY</dt><dd>'+esc(d.q)+'</dd>'
+        +'<dt>EST</dt><dd>'+(d.e?fmt(d.e):"HELD, NOT SPENT")+'</dd>'
+        +'<dt>TIER</dt><dd>'+esc(TIERS[d.t]||d.t)+'</dd>'
+        +'<dt>STATUS</dt><dd>'+(ck2?"SECURED":"OUTSTANDING")+'</dd></dl>'
+        +(d.note?'<p class="note'+(d.s?" safe":"")+'">'+esc(d.note)+'</p>':"")
+        +'<button class="bigbtn'+(ck2?" undo":"")+'" data-toggle="'+d.i+'">'+(ck2?"[ MARK OUTSTANDING ]":"[ MARK SECURED ]")+'</button>';
+    } else {
+      var its2=ITEMS.filter(function(x){return x.c===tab&&!x.o;});
+      var ct=its2.reduce(function(a,x){return a+x.e;},0);
+      var cs=its2.reduce(function(a,x){return a+(state.checked[x.i]?x.e:0);},0);
+      h+='<h2>'+esc(tab)+' STATUS</h2><dl class="kv">'
+        +'<dt>SECURED</dt><dd>'+fmt(cs)+' / '+fmt(ct)+'</dd>'
+        +'<dt>ITEMS</dt><dd>'+its2.filter(function(x){return state.checked[x.i];}).length+' / '+its2.length+'</dd></dl>'
+        +'<p class="note">SELECT AN ITEM FOR ITS DATA CARD. CLICK THE [ ] BOX TO MARK IT SECURED.</p>';
+    }
+    h+='</aside></div>';
+  } else {
+    h+='<div class="sub"><span>ALLOCATION OVERVIEW — LEAN BUILD ACTIVE</span></div>';
+    h+='<div class="main"><div class="leaders"><h2>SUPPLY ALLOCATIONS</h2>';
+    h+=["FOOD","WATER","MED","WARM","GEAR","FUEL"].map(function(c){
+      return '<button class="lrow" data-go="'+c+'"><span class="ln">'+c+'</span><span class="dots"></span><span class="pv">'+catPct(c)+'%</span></button>';
+    }).join("");
+    h+='<div class="nextup"><h2>NEXT ACQUISITIONS</h2>';
+    var next=TORDER.reduce(function(acc,t){
+      if(acc.length>=6)return acc;
+      ITEMS.forEach(function(x){if(acc.length<6&&x.t===t&&!x.o&&!state.checked[x.i])acc.push(x);});
+      return acc;
+    },[]);
+    h+=next.length?next.map(function(x){return '<button class="nrow" data-goto="'+x.i+'"><span class="tier">'+esc(x.t)+'</span><span>'+esc(x.n)+'</span><span class="pr">'+fmt(x.e)+'</span></button>';}).join(""):'<p class="note">ALL LEAN-BUILD ITEMS SECURED. VAULT 180 IS STOCKED.</p>';
+    h+='</div><p class="hint">FILE OF RECORD: PREPAREDNESS/LEDGER.MD · FULL PLAN: SIX-MONTH-WINTER-PLAN.MD</p></div>';
+    h+='<aside class="det"><h2>VAULT 180</h2><dl class="kv">'
+      +'<dt>LEAN BUILD</dt><dd>'+fmt(lt)+'</dd>'
+      +'<dt>SECURED</dt><dd>'+fmt(sec)+'</dd>'
+      +'<dt>OUTSTANDING</dt><dd>'+fmt(Math.max(0,lt-Math.min(sec,lt)))+'</dd>'
+      +'<dt>OPTIONAL POOL</dt><dd>'+fmt(optSum)+'</dd>'
+      +'<dt>CALORIES</dt><dd>~1.03M ON HAND AT FULL BUILD</dd>'
+      +'<dt>WATER</dt><dd>500 GAL STORED + STACK</dd></dl>'
+      +'<p class="note">ONE KIT MEAL PER PERSON PER DAY. ONE JUG PER DAY. HEATER SLEEPS OFF. ZERO GASOLINE INDOORS. DRINK TO THIRST.</p></aside></div>';
+  }
+  var pct=Math.min(100,Math.round(100*sec/lt));
+  h+='</div><footer class="foot"><span>SECURED <b>'+fmt(sec)+'</b> / '+fmt(lt)+' LEAN</span>'
+    +'<span class="bar" role="img" aria-label="'+pct+' percent of lean build secured"><i style="width:'+pct+'%"></i></span>'
+    +'<span><b>'+pct+'%</b></span><span>ITEMS <b>'+countChecked()+'</b>/'+ITEMS.length+'</span></footer>';
+  root.innerHTML=h;
+  setSync(art?"SYNCED":(artReady?"LOCAL ONLY":"LOCAL"), art?false:artReady);
+}
+
+/* ---------- events (delegated) ---------- */
+document.addEventListener("click",function(ev){
+  var t=ev.target.closest("[data-box]");
+  if(t){var id=t.getAttribute("data-box");state.checked[id]=!state.checked[id];if(!state.checked[id])delete state.checked[id];render();persist();ev.stopPropagation();return;}
+  var tg=ev.target.closest("[data-toggle]");
+  if(tg){var id2=tg.getAttribute("data-toggle");state.checked[id2]=!state.checked[id2];if(!state.checked[id2])delete state.checked[id2];render();persist();return;}
+  var r=ev.target.closest(".row");
+  if(r){sel=(sel===r.getAttribute("data-id"))?null:r.getAttribute("data-id");render();return;}
+  var tb=ev.target.closest("[data-tab]");
+  if(tb){tab=tb.getAttribute("data-tab");sel=null;render();return;}
+  var go=ev.target.closest("[data-go]");
+  if(go){tab=go.getAttribute("data-go");sel=null;render();return;}
+  var gt=ev.target.closest("[data-goto]");
+  if(gt){var it=ITEMS.find(function(x){return x.i===gt.getAttribute("data-goto");});if(it){tab=it.c;sel=it.i;render();}return;}
+  var oc=ev.target.closest("#optchip");
+  if(oc){showOpt=!showOpt;render();return;}
+});
+
+/* ---------- boot ---------- */
+render();
+(function(){
+  var use=(window.claude&&window.claude.use)?window.claude.use("artifact"):Promise.resolve(null);
+  Promise.resolve(use).then(function(ns){art=ns;artReady=true;if(!art)lsMerge();render();})
+  .catch(function(){art=null;artReady=true;lsMerge();render();});
+})();
+})();
+</script>
+</body>
+</html>
