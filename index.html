@@ -119,6 +119,8 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .foot .bar{flex:1;min-width:140px;height:13px;border:1px solid var(--dim);position:relative}
 .foot .bar i{position:absolute;inset:1px auto 1px 1px;background:var(--ink);display:block}
 .foot b{color:var(--ink);font-weight:normal;font-variant-numeric:tabular-nums}
+.foot .keys{color:var(--dim);font-size:11.5px;letter-spacing:.08em}
+@media (max-width:780px){.foot .keys{display:none}}
 .hint{color:var(--dimmer);font-size:12px;margin-top:10px}
 </style>
 </head>
@@ -235,6 +237,34 @@ var state={v:1,checked:{}};
 try{var p=JSON.parse(stateEl.textContent);if(p&&p.checked)state=p;}catch(e){}
 var art=null, artReady=false, tab="STATUS", sel=null, showOpt=true, saveT=null;
 
+/* ---------- procedural audio (Web Audio, no files; device-local pref) ---------- */
+var AC=null, sndOn=true;
+try{ sndOn = localStorage.getItem("vault180_snd")!=="0"; }catch(e){}
+function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){AC=null;} } if(AC&&AC.state==="suspended"){ AC.resume().catch(function(){}); } return AC; }
+function tone(f0,f1,dur,type,vol,delay){
+  var a=ac(); if(!a||!sndOn)return;
+  try{
+    var t=a.currentTime+(delay||0);
+    var o=a.createOscillator(), g=a.createGain();
+    o.type=type||"square";
+    o.frequency.setValueAtTime(f0,t);
+    if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol||0.06,t+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t+dur+0.03);
+  }catch(e){}
+}
+var sfx={
+  tab:function(){ tone(180,0,0.05,"square",0.05); tone(1300,950,0.055,"square",0.032,0.014); },
+  sel:function(){ tone(1050,1200,0.03,"square",0.028); },
+  on:function(){ tone(880,1320,0.07,"square",0.055); tone(1760,0,0.05,"triangle",0.04,0.062); },
+  off:function(){ tone(720,330,0.09,"square",0.05); }
+};
+function sndToggle(){ sndOn=!sndOn; try{localStorage.setItem("vault180_snd",sndOn?"1":"0");}catch(e){} render(); if(sndOn)sfx.tab(); }
+function focusSel(){ var el=document.querySelector(".row.sel"); if(el)el.scrollIntoView({block:"nearest"}); }
+
 function lsWrite(){try{localStorage.setItem("vault180",JSON.stringify(state));}catch(e){}}
 function lsMerge(){try{var s=localStorage.getItem("vault180");if(s){var o=JSON.parse(s);if(o&&o.checked){for(var k in o.checked){state.checked[k]=o.checked[k];}}}}catch(e){}}
 
@@ -278,7 +308,8 @@ function render(){
   var h='<div class="crt">';
   h+='<header class="hdr"><span class="t">VAULT 180 <small>· SUPPLY LEDGER</small></span>'
    +'<span class="sys">2 ADULTS · 180 DAYS · REV 2026-08-29</span>'
-   +'<span class="sync" id="sync">HOLOTAPE: …</span></header>';
+   +'<span class="sync" id="sync">HOLOTAPE: …</span>'
+   +'<button class="sync" id="sndbtn" aria-pressed="'+sndOn+'" title="toggle sound (S)">SND: '+(sndOn?"ON":"OFF")+'</button></header>';
   h+='<nav class="tabs">'+CATS.map(function(c){return '<button class="tab'+(tab===c?" on":"")+'" data-tab="'+c+'">'+c+'</button>';}).join("")+'</nav>';
   if(tab!=="STATUS"){
     h+='<div class="sub"><span>'+esc(CATLABEL[tab]||"")+'</span>'
@@ -343,27 +374,62 @@ function render(){
   var pct=Math.min(100,Math.round(100*sec/lt));
   h+='</div><footer class="foot"><span>SECURED <b>'+fmt(sec)+'</b> / '+fmt(lt)+' LEAN</span>'
     +'<span class="bar" role="img" aria-label="'+pct+' percent of lean build secured"><i style="width:'+pct+'%"></i></span>'
-    +'<span><b>'+pct+'%</b></span><span>ITEMS <b>'+countChecked()+'</b>/'+ITEMS.length+'</span></footer>';
+    +'<span><b>'+pct+'%</b></span><span>ITEMS <b>'+countChecked()+'</b>/'+ITEMS.length+'</span>'
+    +'<span class="keys">◄ ► TABS · ▲ ▼ SELECT · ⏎ SECURE · S SND</span></footer>';
   root.innerHTML=h;
   setSync(art?"SYNCED":(artReady?"LOCAL ONLY":"LOCAL"), art?false:artReady);
 }
 
 /* ---------- events (delegated) ---------- */
+function toggleItem(id){
+  state.checked[id]=!state.checked[id];
+  var on=!!state.checked[id];
+  if(!on)delete state.checked[id];
+  render();persist();
+  if(on)sfx.on();else sfx.off();
+  return on;
+}
 document.addEventListener("click",function(ev){
   var t=ev.target.closest("[data-box]");
-  if(t){var id=t.getAttribute("data-box");state.checked[id]=!state.checked[id];if(!state.checked[id])delete state.checked[id];render();persist();ev.stopPropagation();return;}
+  if(t){toggleItem(t.getAttribute("data-box"));ev.stopPropagation();return;}
   var tg=ev.target.closest("[data-toggle]");
-  if(tg){var id2=tg.getAttribute("data-toggle");state.checked[id2]=!state.checked[id2];if(!state.checked[id2])delete state.checked[id2];render();persist();return;}
+  if(tg){toggleItem(tg.getAttribute("data-toggle"));return;}
   var r=ev.target.closest(".row");
-  if(r){sel=(sel===r.getAttribute("data-id"))?null:r.getAttribute("data-id");render();return;}
+  if(r){sel=(sel===r.getAttribute("data-id"))?null:r.getAttribute("data-id");render();sfx.sel();return;}
   var tb=ev.target.closest("[data-tab]");
-  if(tb){tab=tb.getAttribute("data-tab");sel=null;render();return;}
+  if(tb){tab=tb.getAttribute("data-tab");sel=null;render();sfx.tab();return;}
   var go=ev.target.closest("[data-go]");
-  if(go){tab=go.getAttribute("data-go");sel=null;render();return;}
+  if(go){tab=go.getAttribute("data-go");sel=null;render();sfx.tab();return;}
   var gt=ev.target.closest("[data-goto]");
-  if(gt){var it=ITEMS.find(function(x){return x.i===gt.getAttribute("data-goto");});if(it){tab=it.c;sel=it.i;render();}return;}
+  if(gt){var it=ITEMS.find(function(x){return x.i===gt.getAttribute("data-goto");});if(it){tab=it.c;sel=it.i;render();sfx.tab();}return;}
   var oc=ev.target.closest("#optchip");
-  if(oc){showOpt=!showOpt;render();return;}
+  if(oc){showOpt=!showOpt;render();sfx.sel();return;}
+  var sb=ev.target.closest("#sndbtn");
+  if(sb){sndToggle();return;}
+});
+
+/* ---------- keyboard: ◄ ► tabs · ▲ ▼ select · enter/space secure · s sound ---------- */
+document.addEventListener("keydown",function(ev){
+  if(ev.metaKey||ev.ctrlKey||ev.altKey)return;
+  var k=ev.key;
+  if(k==="ArrowLeft"||k==="ArrowRight"||k==="["||k==="]"){
+    var d=(k==="ArrowLeft"||k==="[")?-1:1;
+    tab=CATS[(CATS.indexOf(tab)+d+CATS.length)%CATS.length];
+    sel=null;render();sfx.tab();ev.preventDefault();return;
+  }
+  if(k==="s"||k==="S"){sndToggle();return;}
+  if(tab==="STATUS")return;
+  var its=catItems(tab);
+  if((k==="ArrowDown"||k==="ArrowUp")&&its.length){
+    var pos=-1;for(var j=0;j<its.length;j++){if(its[j].i===sel){pos=j;break;}}
+    var np;
+    if(pos<0){np=(k==="ArrowDown")?0:its.length-1;}
+    else{np=Math.min(its.length-1,Math.max(0,pos+((k==="ArrowDown")?1:-1)));}
+    sel=its[np].i;render();sfx.sel();focusSel();ev.preventDefault();return;
+  }
+  if((k==="Enter"||k===" ")&&sel){
+    toggleItem(sel);focusSel();ev.preventDefault();return;
+  }
 });
 
 /* ---------- boot ---------- */
