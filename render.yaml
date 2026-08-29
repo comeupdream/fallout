@@ -1,0 +1,19 @@
+# Render Blueprint — Vault 180 supply ledger
+#
+# Single-file static site, no build step. Deploy: Render dashboard →
+# New → Blueprint → pick this repo → Apply. Checks persist per-device
+# via localStorage when served here (the claude.ai artifact copy is the
+# synced one).
+#
+# X-Robots-Tag keeps the supply list out of search indexes — this is a
+# personal inventory, not a public site.
+services:
+  - type: web
+    name: vault-180
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex

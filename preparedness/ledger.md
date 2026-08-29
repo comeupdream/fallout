@@ -14,13 +14,13 @@ Prices are 2026 street estimates ±20% unless marked actual. Updated 2026-08-29.
 | Water — 180× 2.5-gal tap jugs | **$720** | 🛒 priced |
 | Tier 0 — finish food/water: pantry $1,545 + trimmed water add-ons $440 | $1,985 | ☐ next |
 | Tier 1 — cold layer: bags/pads/blankets $390 + merino & proper parkas $810 | $1,200 | ☐ |
-| Tier 2 — sanitary + medical (no Rx per decision) | $1,260 | ☐ |
+| Tier 2 — sanitary + medical, stripped to basics per decision | $525 | ☐ |
 | Tier 3 — heat: hardware + foam board + CO/fire safety + 3-month propane (12× 20-lb) | $1,420 | ☐ |
 | Tier 4 — light/comms lean (no solar) | $575 | ☐ |
 | Tier 5 — gear/security trimmed | $1,420 | ☐ |
 | Tier 6 — gasoline + slope pit | $440 | ☐ |
-| **Lean all-in** | **≈ $10,700** | vs $14,100 full build |
-| † Add-backs when budget allows: IIIA armor $600 · antibiotic kit $260 · solar $330 · spring buys (rain barrels + off-ramp) $370 · propane months 4–6 $550 | +$2,110 max | optional |
+| **Lean all-in** | **≈ $9,900** | vs $14,100 full build |
+| † Add-backs when budget allows: IIIA armor $600 · antibiotic kit $260 · med/hygiene comfort restock $360 · solar $330 · spring buys (rain barrels + off-ramp) $370 · propane months 4–6 $550 | +$2,470 max | optional |
 
 ### The lean build — what changed and why it's safe
 
@@ -37,6 +37,13 @@ Prices are 2026 street estimates ±20% unless marked actual. Updated 2026-08-29.
 - **Gear trims (−$250):** one multitool; no thermoses/goggles; stove counted in heat.
 - **Clothing UP $330 on purpose:** real merino ×2 sets each + proper insulated
   parkas — capital that never expires and substitutes for propane.
+- **Sanitary stripped to basics (−$735):** peroxide ×6, rubbing alcohol ×6,
+  toothpaste ×8, 3-in-1 shower gel ×6, 2 prebuilt med kits (~$145 for the
+  named list) plus the cheap structural keeps: TP ×80, bucket toilet + bags,
+  feminine 6-mo, $60 OTC bottle set, gloves/N95, laundry plunger, and 2
+  genuine CAT tourniquets — ≈$525 total. Baking soda (food shelf) covers
+  deodorant/powder; towels from the closet; diagnostics/splints/dental/wipes
+  → optional pool.
 - **Never cut:** CO/smoke/extinguishers, the daily canned-meat protein line,
   water treatment chemicals, the free 72-hour dry run.
 
